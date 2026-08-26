@@ -11,7 +11,7 @@ from core.data_sources.market_feeds.connector_base import ConnectorBase
 class FXMacroDataCalendarConnector(ConnectorBase):
     """Async connector for FXMacroData economic-release calendars."""
 
-    BASE_URL = "https://fxmacrodata.com/api/v1"
+    BASE_URL = "https://api.fxmacrodata.com/v1"
     RATE_LIMIT_ID = "fxmacrodata_calendar"
 
     def __init__(self, api_key: Optional[str] = None, session: Optional[aiohttp.ClientSession] = None):
