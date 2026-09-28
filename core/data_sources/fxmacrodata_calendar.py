@@ -27,8 +27,9 @@ class FXMacroDataCalendarConnector(ConnectorBase):
         top_tier_only: bool = False,
     ) -> List[Dict]:
         params: Dict[str, str] = {}
+        headers = {"Accept": "application/json"}
         if self.api_key:
-            params["api_key"] = self.api_key
+            headers["X-API-Key"] = self.api_key
         if start_date:
             params["start_date"] = start_date
         if end_date:
@@ -37,7 +38,7 @@ class FXMacroDataCalendarConnector(ConnectorBase):
             "GET",
             f"{self.BASE_URL}/calendar/{currency.lower()}",
             params=params,
-            headers={"Accept": "application/json"},
+            headers=headers,
             limit_id=self.RATE_LIMIT_ID,
         )
         rows = list((payload or {}).get("data") or [])
@@ -47,4 +48,3 @@ class FXMacroDataCalendarConnector(ConnectorBase):
 
     def get_exchange_trading_pair(self, trading_pair: str) -> str:
         return trading_pair
-
