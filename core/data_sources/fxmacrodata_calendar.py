@@ -40,8 +40,17 @@ class FXMacroDataCalendarConnector(ConnectorBase):
             params=params,
             headers=headers,
             limit_id=self.RATE_LIMIT_ID,
+            # aiohttp would carry the X-API-Key header to a redirect target, so do not follow.
+            allow_redirects=False,
         )
-        rows = list((payload or {}).get("data") or [])
+        if payload is None:
+            return []
+        data = payload.get("data") if isinstance(payload, dict) else None
+        if not isinstance(data, list):
+            detail = payload.get("detail") if isinstance(payload, dict) else None
+            self.logger.error(f"Unexpected FXMacroData calendar response: {detail or 'missing data'}")
+            return []
+        rows = [row for row in data if isinstance(row, dict)]
         if top_tier_only:
             rows = [row for row in rows if row.get("top_tier_for_currency") or row.get("market_tier") == 1]
         return rows

@@ -107,14 +107,16 @@ class ConnectorBase(ABC):
 
     async def _make_request(self, method: str, url: str, params: Optional[Dict] = None, 
                            headers: Optional[Dict] = None, data: Optional[Dict] = None,
-                           limit_id: Optional[str] = None, weight: int = 1) -> Optional[Dict]:
+                           limit_id: Optional[str] = None, weight: int = 1,
+                           allow_redirects: bool = True) -> Optional[Dict]:
         """Generic method to make HTTP requests with error handling and rate limiting."""
         if limit_id:
             await self.enforce_rate_limit(limit_id, weight)
             
         try:
             session = await self._get_session()
-            async with session.request(method, url, params=params, headers=headers, json=data) as response:
+            async with session.request(method, url, params=params, headers=headers, json=data,
+                                       allow_redirects=allow_redirects) as response:
                 response.raise_for_status()
                 return await response.json()
         except aiohttp.ClientResponseError as e:
