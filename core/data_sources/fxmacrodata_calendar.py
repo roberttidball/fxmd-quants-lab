@@ -16,7 +16,10 @@ class FXMacroDataCalendarConnector(ConnectorBase):
 
     def __init__(self, api_key: Optional[str] = None, session: Optional[aiohttp.ClientSession] = None):
         super().__init__(session=session)
-        self.api_key = api_key if api_key is not None else os.getenv("FXMD_API_KEY")
+        key = api_key if api_key is not None else os.getenv("FXMD_API_KEY")
+        self.api_key = (key or "").strip()
+        if any(ch.isspace() or not ch.isprintable() for ch in self.api_key):
+            raise ValueError("FXMacroData API key contains whitespace or control characters")
         self.register_rate_limit(self.RATE_LIMIT_ID, max_requests=30, time_window_seconds=60)
 
     async def get_calendar(
@@ -47,8 +50,7 @@ class FXMacroDataCalendarConnector(ConnectorBase):
             return []
         data = payload.get("data") if isinstance(payload, dict) else None
         if not isinstance(data, list):
-            detail = payload.get("detail") if isinstance(payload, dict) else None
-            self.logger.error(f"Unexpected FXMacroData calendar response: {detail or 'missing data'}")
+            self.logger.error("Unexpected FXMacroData calendar response: missing or invalid data")
             return []
         rows = [row for row in data if isinstance(row, dict)]
         if top_tier_only:
